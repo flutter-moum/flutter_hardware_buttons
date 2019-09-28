@@ -1,0 +1,21 @@
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hardware_buttons/hardware_buttons.dart';
+
+void main() {
+  const MethodChannel channel = MethodChannel('hardware_buttons');
+
+  setUp(() {
+    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+      return '42';
+    });
+  });
+
+  tearDown(() {
+    channel.setMockMethodCallHandler(null);
+  });
+
+  test('getPlatformVersion', () async {
+    expect(await HardwareButtons.platformVersion, '42');
+  });
+}
