@@ -10,7 +10,7 @@ class HansolExample extends StatefulWidget {
 }
 
 class _HansolExampleState extends State<HansolExample> {
-  int _currentValue;
+  VolumeButtonEvent _currentVolumeButtonEvent;
   StreamSubscription _volumeButtonSubscription;
 
   @override
@@ -18,7 +18,7 @@ class _HansolExampleState extends State<HansolExample> {
     super.initState();
     _volumeButtonSubscription = volumeButtonEvents.listen((VolumeButtonEvent event) {
       setState(() {
-        _currentValue = event.value;
+        _currentVolumeButtonEvent = event;
       });
     });
   }
@@ -37,7 +37,7 @@ class _HansolExampleState extends State<HansolExample> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: $_currentValue\n'),
+          child: Text('Value: $_currentVolumeButtonEvent\n'),
         ),
       ),
     );
