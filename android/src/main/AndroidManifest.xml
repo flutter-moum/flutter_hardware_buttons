@@ -1,3 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="flutter.moum.hardware_buttons">
+    package="flutter.moum.hardware_buttons">
+    <!-- todo: 앱이 이미 설치되어 있던 와중에 이 권한이 추가되면 특정 os 이상에서는
+    사용자가 직접 앱 설정 창에서 권한을 바꾸지 않는 이상 해당 권한이 주어지지 않는다.
+    그래서 특정 os 이상에서는 해당 권한이 없으면 유저한테 권한을 달라는 dialog를 띄우도록 해야함 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
 </manifest>
