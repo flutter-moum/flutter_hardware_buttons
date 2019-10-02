@@ -125,7 +125,7 @@ object HardwareButtonsWatcherManager {
             keyWatcher = KeyWatcher(application.applicationContext, callback = {
                 dispatchVolumeButtonEvent(it)
                 currentActivity?.dispatchKeyEvent(it)
-            })
+            }, findFocusCallback = { currentActivity?.window?.decorView?.rootView })
             addOverlayWindowView(application, keyWatcher!!)
         }
     }
@@ -200,11 +200,18 @@ private class KeyWatcher @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-    private val callback: ((event: KeyEvent) -> Unit)? = null
+    private val callback: ((event: KeyEvent) -> Unit)? = null,
+    private val findFocusCallback: (() -> View?)? = null
 ) : View(context, attrs, defStyleAttr) {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         callback?.invoke(event)
         return false
+    }
+
+    // without this, flutter app will not be able to show keyboard
+    // because KeyWatcher view window takes all the focus..
+    override fun findFocus(): View? {
+        return findFocusCallback?.invoke()
     }
 }
 
