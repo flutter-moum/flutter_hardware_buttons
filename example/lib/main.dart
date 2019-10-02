@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hardware_buttons/hardware_buttons.dart';
+import 'package:hardware_buttons/hardware_buttons.dart' as HardwareButtons;
 
 void main() => runApp(MyApp());
 
@@ -11,15 +11,23 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  VolumeButtonEvent _currentVolumeButtonEvent;
-  StreamSubscription _volumeButtonSubscription;
+  String _latestHardwareButtonEvent;
+
+  StreamSubscription<HardwareButtons.VolumeButtonEvent> _volumeButtonSubscription;
+  StreamSubscription<HardwareButtons.HomeButtonEvent> _homeButtonSubscription;
 
   @override
   void initState() {
     super.initState();
-    _volumeButtonSubscription = volumeButtonEvents.listen((VolumeButtonEvent event) {
+    _volumeButtonSubscription = HardwareButtons.volumeButtonEvents.listen((event) {
       setState(() {
-        _currentVolumeButtonEvent = event;
+        _latestHardwareButtonEvent = event.toString();
+      });
+    });
+
+    _homeButtonSubscription = HardwareButtons.homeButtonEvents.listen((event) {
+      setState(() {
+        _latestHardwareButtonEvent = 'HOME_BUTTON';
       });
     });
   }
@@ -28,6 +36,7 @@ class _MyAppState extends State<MyApp> {
   void dispose() {
     super.dispose();
     _volumeButtonSubscription?.cancel();
+    _homeButtonSubscription?.cancel();
   }
 
   @override
@@ -38,7 +47,7 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Value: $_currentVolumeButtonEvent\n'),
+          child: Text('Value: $_latestHardwareButtonEvent\n'),
         ),
       ),
     );
