@@ -3,7 +3,10 @@ package flutter.moum.hardware_buttons
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.PixelFormat
 import android.os.Build
 import android.util.AttributeSet
@@ -25,12 +28,19 @@ object HardwareButtonsWatcherManager {
         VOLUME_DOWN(25),
     }
 
+    interface HomeButtonListener {
+        fun onHomeButtonEvent()
+    }
+
     private var application: Application? = null
     private var currentActivity: Activity? = null
     private var activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
 
     private var keyWatcher: KeyWatcher? = null
     private var volumeButtonListeners: ArrayList<VolumeButtonListener> = arrayListOf()
+
+    private var homeButtonWatcher: HomeButtonWatcher? = null
+    private var homeButtonListeners: ArrayList<HomeButtonListener> = arrayListOf()
 
     fun getInstance(application: Application, activity: Activity): HardwareButtonsWatcherManager {
         this.application = application
@@ -51,12 +61,14 @@ object HardwareButtonsWatcherManager {
 
                     // attach necessary watchers
                     attachKeyWatcherIfNeeded()
+                    attachHomeButtonWatcherIfNeeded()
                 }
 
                 override fun onActivityStopped(activity: Activity?) {
                     if (currentActivity?.equals(activity) == true) {
                         // detach all watchers
                         detachKeyWatcher()
+                        detachHomeButtonWatcher()
                     }
                 }
 
@@ -69,7 +81,9 @@ object HardwareButtonsWatcherManager {
                         // we should manually clean up resources (i.e. listeners) when activity state becomes invalid (in order to avoid memory leak).
                         // related: https://github.com/flutter/plugins/pull/1992/files/04df85fef5a994d93d89b02b27bb7789ec452528#diff-efd825c710217272904545db4b2198e2
                         volumeButtonListeners.clear()
+                        homeButtonListeners.clear()
                         detachKeyWatcher()
+                        detachHomeButtonWatcher()
                     }
                 }
             }
@@ -84,10 +98,24 @@ object HardwareButtonsWatcherManager {
         attachKeyWatcherIfNeeded()
     }
 
+    fun addHomeButtonListener(listener: HomeButtonListener) {
+        if (!homeButtonListeners.contains(listener)) {
+            homeButtonListeners.add(listener)
+        }
+        attachHomeButtonWatcherIfNeeded()
+    }
+
     fun removeVolumeButtonListener(listener: VolumeButtonListener) {
         volumeButtonListeners.remove(listener)
         if (volumeButtonListeners.size == 0) {
             detachKeyWatcher()
+        }
+    }
+
+    fun removeHomeButtonListener(listener: HomeButtonListener) {
+        homeButtonListeners.remove(listener)
+        if (homeButtonListeners.size == 0) {
+            detachHomeButtonWatcher()
         }
     }
 
@@ -96,11 +124,35 @@ object HardwareButtonsWatcherManager {
         if (volumeButtonListeners.size > 0 && keyWatcher == null) {
             keyWatcher = KeyWatcher(application.applicationContext, callback = {
                 dispatchVolumeButtonEvent(it)
-
                 currentActivity?.dispatchKeyEvent(it)
             })
             addOverlayWindowView(application, keyWatcher!!)
         }
+    }
+
+    private fun attachHomeButtonWatcherIfNeeded() {
+        val application = application ?: return
+        if (homeButtonListeners.size > 0 && homeButtonWatcher == null) {
+            homeButtonWatcher = HomeButtonWatcher {
+                dispatchHomeButtonEvent()
+            }
+            val intentFilter = IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
+            application.registerReceiver(homeButtonWatcher, intentFilter)
+        }
+    }
+
+    private fun detachKeyWatcher() {
+        val application = application ?: return
+        val keyWatcher = keyWatcher ?: return
+        removeOverlayWindowView(application, keyWatcher)
+        this.keyWatcher = null
+    }
+
+    private fun detachHomeButtonWatcher() {
+        val application = application ?: return
+        val homeButtonWatcher = homeButtonWatcher ?: return
+        application.unregisterReceiver(homeButtonWatcher)
+        this.homeButtonWatcher = null
     }
 
     private fun dispatchVolumeButtonEvent(keyEvent: KeyEvent) {
@@ -118,6 +170,12 @@ object HardwareButtonsWatcherManager {
         }
     }
 
+    private fun dispatchHomeButtonEvent() {
+        for (listener in homeButtonListeners) {
+            listener.onHomeButtonEvent()
+        }
+    }
+
     private fun addOverlayWindowView(context: Context, view: View) {
         val windowType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
@@ -130,13 +188,6 @@ object HardwareButtonsWatcherManager {
             PixelFormat.TRANSLUCENT)
 
         (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).addView(view, params)
-    }
-
-    private fun detachKeyWatcher() {
-        val application = application ?: return
-        val keyWatcher = keyWatcher ?: return
-        removeOverlayWindowView(application, keyWatcher)
-        this.keyWatcher = null
     }
 
     private fun removeOverlayWindowView(context: Context, view: View) {
@@ -154,5 +205,21 @@ private class KeyWatcher @JvmOverloads constructor(
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         callback?.invoke(event)
         return false
+    }
+}
+
+private class HomeButtonWatcher(private val callback: () -> Unit): BroadcastReceiver() {
+    companion object {
+        const val KEY_REASON = "reason"
+        const val REASON_HOME_KEY = "homekey"
+    }
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val intent = intent ?: return
+        if (intent.action == Intent.ACTION_CLOSE_SYSTEM_DIALOGS) {
+            if (intent.getStringExtra(KEY_REASON) == REASON_HOME_KEY) {
+                callback()
+            }
+        }
     }
 }
