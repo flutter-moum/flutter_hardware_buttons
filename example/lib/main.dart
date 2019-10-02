@@ -1,11 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:hardware_buttons/hardware_buttons.dart';
-import 'package:hardware_buttons_example/HansolExample.dart';
+import 'package:hardware_buttons/hardware_buttons.dart' as HardwareButtons;
 
-void main() => runApp(HansolExample());
+void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
   @override
@@ -13,32 +11,32 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  String _latestHardwareButtonEvent;
+
+  StreamSubscription<HardwareButtons.VolumeButtonEvent> _volumeButtonSubscription;
+  StreamSubscription<HardwareButtons.HomeButtonEvent> _homeButtonSubscription;
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    _volumeButtonSubscription = HardwareButtons.volumeButtonEvents.listen((event) {
+      setState(() {
+        _latestHardwareButtonEvent = event.toString();
+      });
+    });
+
+    _homeButtonSubscription = HardwareButtons.homeButtonEvents.listen((event) {
+      setState(() {
+        _latestHardwareButtonEvent = 'HOME_BUTTON';
+      });
+    });
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      platformVersion = await HardwareButtons.platformVersion;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
+  @override
+  void dispose() {
+    super.dispose();
+    _volumeButtonSubscription?.cancel();
+    _homeButtonSubscription?.cancel();
   }
 
   @override
@@ -49,9 +47,10 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Text('Value: $_latestHardwareButtonEvent\n'),
         ),
       ),
     );
   }
+
 }
