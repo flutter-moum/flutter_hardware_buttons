@@ -2,12 +2,32 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-class HardwareButtons {
-  static const MethodChannel _channel =
-      const MethodChannel('hardware_buttons');
+const _VOLUME_BUTTON_CHANNEL_NAME = 'flutter.moum.hardware_buttons.volume';
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
+const EventChannel _volumeButtonEventChannel = EventChannel(_VOLUME_BUTTON_CHANNEL_NAME);
+
+Stream<VolumeButtonEvent> _volumeButtonEvents;
+Stream<VolumeButtonEvent> get volumeButtonEvents {
+  if (_volumeButtonEvents == null) {
+    _volumeButtonEvents = _volumeButtonEventChannel
+      .receiveBroadcastStream()
+      .map((dynamic event) => _eventToVolumeButtonEvent(event));
+  }
+  return _volumeButtonEvents;
+}
+
+enum VolumeButtonEvent {
+  VOLUME_UP,
+  VOLUME_DOWN,
+}
+
+VolumeButtonEvent _eventToVolumeButtonEvent(dynamic event) {
+  if (event == 24) {
+    return VolumeButtonEvent.VOLUME_UP;
+  } else if (event == 25) {
+    return VolumeButtonEvent.VOLUME_DOWN;
+  } else {
+    throw Exception('Invalid volume button event');
   }
 }
+
