@@ -47,7 +47,20 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Value: $_latestHardwareButtonEvent\n'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text('Value: $_latestHardwareButtonEvent\n'),
+              SizedBox(
+                width: 300,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: '안드 테스트 용도입니다 ㅠ.ㅠ',
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
