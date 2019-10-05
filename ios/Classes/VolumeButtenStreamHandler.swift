@@ -12,9 +12,19 @@ public class VolumeButtenStreamHandler: NSObject, FlutterStreamHandler {
     
     private var eventSink: FlutterEventSink?
     private var volumeLevel: Float = 0.0
+    private let notificationCenter = NotificationCenter.default
     
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         self.eventSink = events
+        notificationCenter.addObserver(
+            self,
+            selector: #selector(activateAudioSession),
+            name: Notification.Name.UIApplicationDidBecomeActive,
+            object: nil)
+        return nil
+    }
+    
+    @objc func activateAudioSession(){
         let audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession.setActive(true)
@@ -26,7 +36,6 @@ public class VolumeButtenStreamHandler: NSObject, FlutterStreamHandler {
         } catch {
             print("error")
         }
-        return nil
     }
     
     override public func observeValue(forKeyPath keyPath: String?,
@@ -46,8 +55,9 @@ public class VolumeButtenStreamHandler: NSObject, FlutterStreamHandler {
     }
     
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
-        NotificationCenter.default.removeObserver(self,
-                                                  forKeyPath: "outputVolume")
+        notificationCenter.removeObserver(self,
+                                          forKeyPath: "outputVolume")
+        notificationCenter.removeObserver(Notification.Name.UIApplicationDidBecomeActive)
         eventSink = nil
         return nil
     }
