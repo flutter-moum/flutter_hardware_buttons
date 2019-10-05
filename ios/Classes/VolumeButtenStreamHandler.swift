@@ -27,6 +27,7 @@ public class VolumeButtenStreamHandler: NSObject, FlutterStreamHandler {
     @objc func activateAudioSession(){
         let audioSession = AVAudioSession.sharedInstance()
         do {
+            try audioSession.setCategory(AVAudioSessionCategoryAmbient)
             try audioSession.setActive(true)
             audioSession.addObserver(self,
                                      forKeyPath: "outputVolume",
