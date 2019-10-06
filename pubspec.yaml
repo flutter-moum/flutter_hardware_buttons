@@ -1,6 +1,6 @@
 name: hardware_buttons
 description: A Flutter plugin for iOS and Android for detecting various hardware buttons such as volume and home button.
-version: 0.0.1
+version: 0.1.0
 authors:
   - Hansol Lee <giantsol64@gmail.com>
   - Eojin Yang <eozinee@gmail.com>
