@@ -1,17 +1,32 @@
 import Flutter
 import UIKit
 
+enum ChannelName {
+    static let volume = "flutter.moum.hardware_buttons.volume"
+    static let home = "flutter.moum.hardware_buttons.home"
+}
+
 public class SwiftHardwareButtonsPlugin: NSObject, FlutterPlugin {
-    
+
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "hardware_buttons",
-                                                 binaryMessenger: registrar.messenger())
-        let instance = SwiftHardwareButtonsPlugin()
-        registrar.addMethodCallDelegate(instance, channel: channel)
+        
+        // VolumeButton
+        let volumeInstance = VolumeButtenStreamHandler()
+        let volumeStream = FlutterEventChannel(name: ChannelName.volume,
+                                               binaryMessenger: registrar.messenger())
+        volumeStream.setStreamHandler(volumeInstance)
+        
+        // HomeButton
+        let homeInstance = HomeButtonStreamHandler()
+        let homeStream = FlutterEventChannel(name: ChannelName.home,
+                                             binaryMessenger: registrar.messenger())
+        homeStream.setStreamHandler(homeInstance)
+        
     }
 
     public func handle(_ call: FlutterMethodCall,
                        result: @escaping FlutterResult) {
         result("iOS " + UIDevice.current.systemVersion)
     }
+    
 }
