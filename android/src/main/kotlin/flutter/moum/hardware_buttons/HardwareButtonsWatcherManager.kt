@@ -1,6 +1,5 @@
 package flutter.moum.hardware_buttons
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.BroadcastReceiver
@@ -8,18 +7,20 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
+import io.flutter.plugin.common.PluginRegistry
 
 
 // singleton object for managing various resources related with getting hardware button events.
 // those who need to listen to any hardware button events add listener to this single instance.
 // e.g. HardwareButtonsWatcherManager.getInstance(application, activity).addVolumeButtonListener(volumeButtonListener)
-@SuppressLint("StaticFieldLeak")
-object HardwareButtonsWatcherManager {
+class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
     interface VolumeButtonListener {
         fun onVolumeButtonEvent(event: VolumeButtonEvent)
     }
@@ -32,6 +33,23 @@ object HardwareButtonsWatcherManager {
         fun onHomeButtonEvent()
     }
 
+    companion object {
+        private const val REQUEST_CODE_OVERLAY_PERMISSION = 1000
+
+        private val INSTANCE: HardwareButtonsWatcherManager by lazy { HardwareButtonsWatcherManager() }
+        fun getInstance(application: Application, activity: Activity): HardwareButtonsWatcherManager {
+            val instance = INSTANCE
+            instance.application = application
+            // set currentActivity to activity only when ActivityLifecycleCallbacks wasn't registered yet.
+            // otherwise, currentActivity will be updated in ActivityLifecycleCallbacks.
+            if (instance.activityLifecycleCallbacks == null) {
+                instance.currentActivity = activity
+            }
+            instance.registerActivityLifecycleCallbacksIfNeeded()
+            return instance
+        }
+    }
+
     private var application: Application? = null
     private var currentActivity: Activity? = null
     private var activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
@@ -42,16 +60,7 @@ object HardwareButtonsWatcherManager {
     private var homeButtonWatcher: HomeButtonWatcher? = null
     private var homeButtonListeners: ArrayList<HomeButtonListener> = arrayListOf()
 
-    fun getInstance(application: Application, activity: Activity): HardwareButtonsWatcherManager {
-        this.application = application
-        // set currentActivity to activity only when ActivityLifecycleCallbacks wasn't registered yet.
-        // otherwise, currentActivity will be updated in ActivityLifecycleCallbacks.
-        if (activityLifecycleCallbacks == null) {
-            currentActivity = activity
-        }
-        registerActivityLifecycleCallbacksIfNeeded()
-        return this
-    }
+    private var userDeniedPermission = false
 
     private fun registerActivityLifecycleCallbacksIfNeeded() {
         if (activityLifecycleCallbacks == null) {
@@ -75,6 +84,7 @@ object HardwareButtonsWatcherManager {
                 override fun onActivityDestroyed(activity: Activity?) {
                     if (currentActivity?.equals(activity) == true) {
                         currentActivity = null
+                        userDeniedPermission = false
 
                         // remove all listeners and detach all watchers
                         // When flutter app finishes, it doesn't invoke StreamHandler's onCancel() callback properly, so
@@ -121,12 +131,18 @@ object HardwareButtonsWatcherManager {
 
     private fun attachKeyWatcherIfNeeded() {
         val application = application ?: return
-        if (volumeButtonListeners.size > 0 && keyWatcher == null) {
-            keyWatcher = KeyWatcher(application.applicationContext, callback = {
-                dispatchVolumeButtonEvent(it)
-                currentActivity?.dispatchKeyEvent(it)
-            }, findFocusCallback = { currentActivity?.window?.decorView?.rootView })
-            addOverlayWindowView(application, keyWatcher!!)
+        val activity = currentActivity ?: return
+        if (volumeButtonListeners.size > 0 && keyWatcher == null && !userDeniedPermission) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(application)) {
+                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + application.packageName))
+                activity.startActivityForResult(intent, REQUEST_CODE_OVERLAY_PERMISSION)
+            } else {
+                keyWatcher = KeyWatcher(application.applicationContext, callback = {
+                    dispatchVolumeButtonEvent(it)
+                    currentActivity?.dispatchKeyEvent(it)
+                }, findFocusCallback = { currentActivity?.window?.decorView?.rootView })
+                addOverlayWindowView(application, keyWatcher!!)
+            }
         }
     }
 
@@ -192,6 +208,19 @@ object HardwareButtonsWatcherManager {
 
     private fun removeOverlayWindowView(context: Context, view: View) {
         (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeView(view)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        if (requestCode == REQUEST_CODE_OVERLAY_PERMISSION) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(application)) {
+                userDeniedPermission = false
+                attachKeyWatcherIfNeeded()
+            } else {
+                userDeniedPermission = true
+            }
+            return true
+        }
+        return false
     }
 }
 
