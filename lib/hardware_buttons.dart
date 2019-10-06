@@ -11,6 +11,7 @@ const EventChannel _homeButtonEventChannel =
     EventChannel(_HOME_BUTTON_CHANNEL_NAME);
 
 Stream<VolumeButtonEvent> _volumeButtonEvents;
+/// A broadcast stream of events of volume button
 Stream<VolumeButtonEvent> get volumeButtonEvents {
   if (_volumeButtonEvents == null) {
     _volumeButtonEvents = _volumeButtonEventChannel
@@ -21,6 +22,7 @@ Stream<VolumeButtonEvent> get volumeButtonEvents {
 }
 
 Stream<HomeButtonEvent> _homeButtonEvents;
+/// A broadcast stream of events of home button
 Stream<HomeButtonEvent> get homeButtonEvents {
   if (_homeButtonEvents == null) {
     _homeButtonEvents = _homeButtonEventChannel
@@ -30,8 +32,14 @@ Stream<HomeButtonEvent> get homeButtonEvents {
   return _homeButtonEvents;
 }
 
+/// Volume button events
+/// Applies both to device and earphone buttons
 enum VolumeButtonEvent {
+
+  /// Volume Up button event
   VOLUME_UP,
+
+  /// Volume Down button event
   VOLUME_DOWN,
 }
 
@@ -45,6 +53,9 @@ VolumeButtonEvent _eventToVolumeButtonEvent(dynamic event) {
   }
 }
 
+/// Home button event
+/// On Android, this gets called immediately when user presses the home button.
+/// On iOS, this gets called when user presses the home button and returns to the app.
 class HomeButtonEvent {
   static const INSTANCE = HomeButtonEvent();
 
