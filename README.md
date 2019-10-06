@@ -1,14 +1,90 @@
-# hardware_buttons
+# Hardware Button Detection for Flutter
 
-A new flutter plugin project.
+A Flutter plugin for iOS and Android for detecting various hardware buttons such as volume and home button.
 
-## Getting Started
+// 추가 설명
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+lifecycle 설명
 
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.dev/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+
+
+## Features
+
+- Detect volume buttons
+- Detect home button
+- To be added...
+
+
+
+## Installation
+
+To use this plugin, follow the [plugin installation instructions](https://pub.dartlang.org/packages/google_sign_in#pub-pkg-tab-installing).
+
+
+
+## Screenshot
+
+![screenshots](https://user-images.githubusercontent.com/26567846/66265518-14c69900-e853-11e9-8495-8c2966be4e6c.jpg)
+
+
+
+## Example
+
+```dart
+void main() => runApp(MyApp());
+
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  String _latestHardwareButtonEvent;
+
+  StreamSubscription<HardwareButtons.VolumeButtonEvent> _volumeButtonSubscription;
+  StreamSubscription<HardwareButtons.HomeButtonEvent> _homeButtonSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _volumeButtonSubscription = HardwareButtons.volumeButtonEvents.listen((event) {
+      setState(() {
+        _latestHardwareButtonEvent = event.toString();
+      });
+    });
+
+    _homeButtonSubscription = HardwareButtons.homeButtonEvents.listen((event) {
+      setState(() {
+        _latestHardwareButtonEvent = 'HOME_BUTTON';
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _volumeButtonSubscription?.cancel();
+    _homeButtonSubscription?.cancel();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Plugin example app'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text('Value: $_latestHardwareButtonEvent\n')
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+}
+```
