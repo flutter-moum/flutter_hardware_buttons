@@ -19,11 +19,11 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-//    _volumeButtonSubscription = HardwareButtons.volumeButtonEvents.listen((event) {
-//      setState(() {
-//        _latestHardwareButtonEvent = event.toString();
-//      });
-//    });
+    _volumeButtonSubscription = HardwareButtons.volumeButtonEvents.listen((event) {
+      setState(() {
+        _latestHardwareButtonEvent = event.toString();
+      });
+    });
 
     _homeButtonSubscription = HardwareButtons.homeButtonEvents.listen((event) {
       setState(() {
@@ -51,14 +51,6 @@ class _MyAppState extends State<MyApp> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Text('Value: $_latestHardwareButtonEvent\n'),
-              SizedBox(
-                width: 300,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: '안드 테스트 용도입니다 ㅠ.ㅠ',
-                  ),
-                ),
-              )
             ],
           ),
         ),
