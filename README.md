@@ -4,11 +4,6 @@
 
 A Flutter plugin for iOS and Android for detecting various hardware buttons such as volume and home button.
 
-// 추가 설명
-
-lifecycle 설명
-
-
 
 ## Features
 
@@ -24,69 +19,40 @@ To use this plugin, follow the [plugin installation instructions](https://pub.de
 
 
 
-## Screenshot
+## Screenshots
 
 ![screenshots](https://user-images.githubusercontent.com/26567846/66265518-14c69900-e853-11e9-8495-8c2966be4e6c.jpg)
 
 
 
-## Example
+## Usage
 
-```dart
-void main() => runApp(MyApp());
+In order to listen to volume button events, use `volumeButtonEvents.listen` as below:
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
+```
+import 'package:hardware_buttons/hardware_buttons.dart'
+
+StreamSubscription _volumeButtonSubscription;
+
+@override
+void initState() {
+  super.initState();
+  _volumeButtonSubscription = volumeButtonEvents.listen((VolumeButtonEvent event) {
+    // do something
+    // event is either of VolumeButtonEvent.VOLUME_UP or VolumeButtonEvent.VOLUME_DOWN
+  });
 }
 
-class _MyAppState extends State<MyApp> {
-  String _latestHardwareButtonEvent;
-
-  StreamSubscription<HardwareButtons.VolumeButtonEvent> _volumeButtonSubscription;
-  StreamSubscription<HardwareButtons.HomeButtonEvent> _homeButtonSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _volumeButtonSubscription = HardwareButtons.volumeButtonEvents.listen((event) {
-      setState(() {
-        _latestHardwareButtonEvent = event.toString();
-      });
-    });
-
-    _homeButtonSubscription = HardwareButtons.homeButtonEvents.listen((event) {
-      setState(() {
-        _latestHardwareButtonEvent = 'HOME_BUTTON';
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _volumeButtonSubscription?.cancel();
-    _homeButtonSubscription?.cancel();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text('Value: $_latestHardwareButtonEvent\n')
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
+@override
+void dispose() {
+  super.dispose();
+  // be sure to cancel on dispose
+  _volumeButtonSubscription?.cancel();
 }
 ```
+
+*Note*
+- On iOS, when volume is minimum and user presses volume down button, VOLUME_DOWN event doesn't occur. VOLUME_UP vice versa.
+- On the other hand, VOLUME_DOWN and VOLUME_UP events always occur whenever button is pressed on Android.
+
+Similarly, you can listen to home button events using `homeButtonEvents.listen`.
