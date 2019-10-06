@@ -10,11 +10,16 @@ class HardwareButtonsPlugin {
 
         @JvmStatic
         fun registerWith(registrar: PluginRegistry.Registrar) {
+            val activity = registrar.activity()
+            val application = activity.application
+
+            registrar.addActivityResultListener(HardwareButtonsWatcherManager.getInstance(application, activity))
+
             val volumeButtonChannel = EventChannel(registrar.messenger(), VOLUME_BUTTON_CHANNEL_NAME)
-            volumeButtonChannel.setStreamHandler(VolumeButtonStreamHandler(registrar.activity()))
+            volumeButtonChannel.setStreamHandler(VolumeButtonStreamHandler(activity))
 
             val homeButtonChannel = EventChannel(registrar.messenger(), HOME_BUTTON_CHANNEL_NAME)
-            homeButtonChannel.setStreamHandler(HomeButtonStreamHandler(registrar.activity()))
+            homeButtonChannel.setStreamHandler(HomeButtonStreamHandler(activity))
         }
     }
 }

@@ -19,11 +19,11 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _volumeButtonSubscription = HardwareButtons.volumeButtonEvents.listen((event) {
-      setState(() {
-        _latestHardwareButtonEvent = event.toString();
-      });
-    });
+//    _volumeButtonSubscription = HardwareButtons.volumeButtonEvents.listen((event) {
+//      setState(() {
+//        _latestHardwareButtonEvent = event.toString();
+//      });
+//    });
 
     _homeButtonSubscription = HardwareButtons.homeButtonEvents.listen((event) {
       setState(() {
