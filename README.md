@@ -1,9 +1,14 @@
-# Hardware Button Detection for Flutter
+# hardware_buttons
 
 [![Version](https://img.shields.io/pub/v/hardware_buttons.svg)](https://pub.dev/packages/hardware_buttons) ![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)
 
-A Flutter plugin for iOS and Android for detecting various hardware buttons such as volume and home button.
+A Flutter plugin for iOS and Android for detecting various hardware buttons.
 
+Note: This plugin is still under development, and some APIs might not be available yet. [Feedback](https://github.com/flutter-moum/flutter_hardware_buttons/issues) and [Pull Requests](https://github.com/flutter-moum/flutter_hardware_buttons/pulls) are most welcome!
+
+## Screenshots
+
+![screenshots](https://user-images.githubusercontent.com/26567846/66265518-14c69900-e853-11e9-8495-8c2966be4e6c.jpg)
 
 ## Features
 
@@ -11,27 +16,31 @@ A Flutter plugin for iOS and Android for detecting various hardware buttons such
 - Detect home button
 - To be added...
 
+## Android specification
 
+- In order to listen to volume button events, this plugin inevitably requests for [ACTION_MANAGER_OVERLAY_PERMISSION](https://developer.android.com/reference/android/provider/Settings.html#ACTION_MANAGE_OVERLAY_PERMISSION). This may surprise users, so we recommend notifying users beforehand.
 
-## Installation
+## iOS specification
 
-To use this plugin, follow the [plugin installation instructions](https://pub.dev/packages/hardware_buttons#-installing-tab-).
-
-
-
-## Screenshots
-
-![screenshots](https://user-images.githubusercontent.com/26567846/66265518-14c69900-e853-11e9-8495-8c2966be4e6c.jpg)
-
-
+- No VOLUME_DOWN events are emitted when the volume is already at its minimum. VOLUME_UP events vice versa. On the other hand, events always occur whenever user presses the button on Android.
 
 ## Usage
 
+### Import the package
+
+To use this plugin, follow the [plugin installation instructions](https://pub.dev/packages/hardware_buttons#-installing-tab-).
+
+## Use the plugin
+
+Add the following import to your Dart code:
+
+```dart
+import 'package:hardware_buttons/hardware_buttons.dart';
+```
+
 In order to listen to volume button events, use `volumeButtonEvents.listen` as below:
 
-```
-import 'package:hardware_buttons/hardware_buttons.dart'
-
+```dart
 StreamSubscription _volumeButtonSubscription;
 
 @override
@@ -39,7 +48,7 @@ void initState() {
   super.initState();
   _volumeButtonSubscription = volumeButtonEvents.listen((VolumeButtonEvent event) {
     // do something
-    // event is either of VolumeButtonEvent.VOLUME_UP or VolumeButtonEvent.VOLUME_DOWN
+    // event is either VolumeButtonEvent.VOLUME_UP or VolumeButtonEvent.VOLUME_DOWN
   });
 }
 
@@ -51,8 +60,16 @@ void dispose() {
 }
 ```
 
-*Note*
-- On iOS, when volume is minimum and user presses volume down button, VOLUME_DOWN event doesn't occur. VOLUME_UP vice versa.
-- On the other hand, VOLUME_DOWN and VOLUME_UP events always occur whenever button is pressed on Android.
-
 Similarly, you can listen to home button events using `homeButtonEvents.listen`.
+
+## Example
+
+Find the example wiring in the [example app](https://github.com/flutter-moum/flutter_hardware_buttons/blob/master/example/lib/main.dart).
+
+## API details
+
+See the [hardware_buttons.dart](https://github.com/flutter-moum/flutter_hardware_buttons/blob/master/lib/hardware_buttons.dart) for more API details.
+
+## Issues and feedback
+
+Please file [issues](https://github.com/flutter-moum/flutter_hardware_buttons/issues) to send feedback or report a bug. Thank you!
