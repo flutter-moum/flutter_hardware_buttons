@@ -1,6 +1,6 @@
 # Hardware Button Detection for Flutter
 
-[![Version](https://img.shields.io/pub/v/auto_size_text.svg)](https://pub.dev/packages/auto_size_text) ![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)
+[![Version](https://img.shields.io/pub/v/auto_size_text.svg)](https://pub.dev/packages/hardware_buttons) ![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)
 
 A Flutter plugin for iOS and Android for detecting various hardware buttons such as volume and home button.
 
@@ -20,7 +20,7 @@ lifecycle 설명
 
 ## Installation
 
-To use this plugin, follow the [plugin installation instructions](https://pub.dartlang.org/packages/google_sign_in#pub-pkg-tab-installing).
+To use this plugin, follow the [plugin installation instructions](https://pub.dev/packages/hardware_buttons#-installing-tab-).
 
 
 
