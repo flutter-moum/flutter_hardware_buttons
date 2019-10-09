@@ -11,7 +11,6 @@ public class LockButtonStreamHandler: NSObject, FlutterStreamHandler {
 
     private var eventSink: FlutterEventSink?
     private let notificationCenter = NotificationCenter.default
-    private var isLocked = false
     
     public func onListen(withArguments arguments: Any?,
                          eventSink events: @escaping FlutterEventSink) -> FlutterError? {
@@ -47,15 +46,7 @@ public class LockButtonStreamHandler: NSObject, FlutterStreamHandler {
     
     private func displayStatusChanged(_ lockState: String) {
         if lockState == "com.apple.springboard.lockstate" {
-            if !isLocked {
-                print("LOCK")
-                eventSink?(1)
-                isLocked = true
-            } else {
-                print("UNLOCK")
-                eventSink?(0)
-                isLocked = false
-            }
+            eventSink?(0)
         }
     }
     
