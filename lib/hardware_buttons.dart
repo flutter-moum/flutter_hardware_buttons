@@ -41,7 +41,7 @@ Stream<LockButtonEvent> get lockButtonEvents {
   if (_lockButtonEvents == null) {
     _lockButtonEvents = _lockButtonEventChannel
         .receiveBroadcastStream()
-        .map((dynamic event) => _eventToLockButtonEvent(event));
+        .map((dynamic event) => LockButtonEvent.INSTANCE);
   }
   return _lockButtonEvents;
 }
@@ -55,16 +55,6 @@ enum VolumeButtonEvent {
 
   /// Volume Down button event
   VOLUME_DOWN,
-}
-
-/// Lock button events
-enum LockButtonEvent {
-
-  /// Lock button event
-  LOCK,
-
-  /// Unlock button event
-  UNLOCK,
 }
 
 VolumeButtonEvent _eventToVolumeButtonEvent(dynamic event) {
@@ -87,12 +77,8 @@ class HomeButtonEvent {
 }
 
 /// Lock button event
-LockButtonEvent _eventToLockButtonEvent(dynamic event) {
-  if (event == 1) {
-    return LockButtonEvent.LOCK;
-  } else if (event == 0) {
-    return LockButtonEvent.UNLOCK;
-  } else {
-    throw Exception('Invalid lock button event');
-  }
+class LockButtonEvent {
+  static const INSTANCE = LockButtonEvent();
+
+  const LockButtonEvent();
 }

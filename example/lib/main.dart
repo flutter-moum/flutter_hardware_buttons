@@ -34,7 +34,7 @@ class _MyAppState extends State<MyApp> {
 
     _lockButtonSubscription = HardwareButtons.lockButtonEvents.listen((event) {
       setState(() {
-        _latestHardwareButtonEvent = event.toString();
+        _latestHardwareButtonEvent = 'LOCK_BUTTON';
       });
     });
   }
