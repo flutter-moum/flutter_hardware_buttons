@@ -12,24 +12,35 @@ public class HomeButtonStreamHandler: NSObject, FlutterStreamHandler {
     private var eventSink: FlutterEventSink?
     private let notificationCenter = NotificationCenter.default
     
-    public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+    public func onListen(withArguments arguments: Any?,
+                         eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         self.eventSink = events
-        notificationCenter.addObserver(
-            self,
-            selector: #selector(applicationWillResignActive),
-            name: Notification.Name.UIApplicationWillResignActive,
-            object: nil)
+        registerHomeObserver()
         return nil
-    }
-    
-    @objc func applicationWillResignActive(){
-        print("out of focus!")
-        eventSink?(0)
     }
     
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
-        notificationCenter.removeObserver(Notification.Name.UIApplicationWillResignActive)
         eventSink = nil
+        removeHomeObserver()
         return nil
+    }
+    
+    // Register Home Notification
+    private func registerHomeObserver() {
+        notificationCenter.addObserver(
+            self,
+            selector: #selector(applicationDidEnterBackground),
+            name: Notification.Name.UIApplicationDidEnterBackground,
+            object: nil)
+    }
+    
+    // Remove Home Notification
+    private func removeHomeObserver() {
+        notificationCenter.removeObserver(Notification.Name.UIApplicationDidEnterBackground)
+    }
+    
+    @objc func applicationDidEnterBackground(){
+        print("out of focus!")
+        eventSink?(0)
     }
 }
