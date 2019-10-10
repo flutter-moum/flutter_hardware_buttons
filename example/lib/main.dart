@@ -15,6 +15,7 @@ class _MyAppState extends State<MyApp> {
 
   StreamSubscription<HardwareButtons.VolumeButtonEvent> _volumeButtonSubscription;
   StreamSubscription<HardwareButtons.HomeButtonEvent> _homeButtonSubscription;
+  StreamSubscription<HardwareButtons.LockButtonEvent> _lockButtonSubscription;
 
   @override
   void initState() {
@@ -30,6 +31,12 @@ class _MyAppState extends State<MyApp> {
         _latestHardwareButtonEvent = 'HOME_BUTTON';
       });
     });
+
+    _lockButtonSubscription = HardwareButtons.lockButtonEvents.listen((event) {
+      setState(() {
+        _latestHardwareButtonEvent = 'LOCK_BUTTON';
+      });
+    });
   }
 
   @override
@@ -37,6 +44,7 @@ class _MyAppState extends State<MyApp> {
     super.dispose();
     _volumeButtonSubscription?.cancel();
     _homeButtonSubscription?.cancel();
+    _lockButtonSubscription?.cancel();
   }
 
   @override

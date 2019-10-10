@@ -4,11 +4,14 @@ import 'package:flutter/services.dart';
 
 const _VOLUME_BUTTON_CHANNEL_NAME = 'flutter.moum.hardware_buttons.volume';
 const _HOME_BUTTON_CHANNEL_NAME = 'flutter.moum.hardware_buttons.home';
+const _LOCK_BUTTON_CHANNEL_NAME = 'flutter.moum.hardware_buttons.lock';
 
 const EventChannel _volumeButtonEventChannel =
     EventChannel(_VOLUME_BUTTON_CHANNEL_NAME);
 const EventChannel _homeButtonEventChannel =
     EventChannel(_HOME_BUTTON_CHANNEL_NAME);
+const EventChannel _lockButtonEventChannel =
+    EventChannel(_LOCK_BUTTON_CHANNEL_NAME);
 
 Stream<VolumeButtonEvent> _volumeButtonEvents;
 /// A broadcast stream of events of volume button
@@ -30,6 +33,17 @@ Stream<HomeButtonEvent> get homeButtonEvents {
         .map((dynamic event) => HomeButtonEvent.INSTANCE);
   }
   return _homeButtonEvents;
+}
+
+Stream<LockButtonEvent> _lockButtonEvents;
+/// A broadcast stream of events of lock button
+Stream<LockButtonEvent> get lockButtonEvents {
+  if (_lockButtonEvents == null) {
+    _lockButtonEvents = _lockButtonEventChannel
+        .receiveBroadcastStream()
+        .map((dynamic event) => LockButtonEvent.INSTANCE);
+  }
+  return _lockButtonEvents;
 }
 
 /// Volume button events
@@ -60,4 +74,11 @@ class HomeButtonEvent {
   static const INSTANCE = HomeButtonEvent();
 
   const HomeButtonEvent();
+}
+
+/// Lock button event
+class LockButtonEvent {
+  static const INSTANCE = LockButtonEvent();
+
+  const LockButtonEvent();
 }
