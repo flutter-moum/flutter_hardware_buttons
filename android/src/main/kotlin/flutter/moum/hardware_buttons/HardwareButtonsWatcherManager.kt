@@ -33,6 +33,10 @@ class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
         fun onHomeButtonEvent()
     }
 
+    interface LockButtonListener {
+        fun onLockButtonEvent()
+    }
+
     companion object {
         private const val REQUEST_CODE_OVERLAY_PERMISSION = 1000
 
@@ -60,7 +64,10 @@ class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
     private var homeButtonWatcher: HomeButtonWatcher? = null
     private var homeButtonListeners: ArrayList<HomeButtonListener> = arrayListOf()
 
-    private var userDeniedPermission = false
+    private var userDeniedDrawOverlaysPermission = false
+
+    private var screenOffWatcher: ScreenOffWatcher? = null
+    private var lockButtonListeners: ArrayList<LockButtonListener> = arrayListOf()
 
     private fun registerActivityLifecycleCallbacksIfNeeded() {
         if (activityLifecycleCallbacks == null) {
@@ -71,6 +78,7 @@ class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
                     // attach necessary watchers
                     attachKeyWatcherIfNeeded()
                     attachHomeButtonWatcherIfNeeded()
+                    attachScreenOffWatcherIfNeeded()
                 }
 
                 override fun onActivityStopped(activity: Activity?) {
@@ -78,13 +86,15 @@ class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
                         // detach all watchers
                         detachKeyWatcher()
                         detachHomeButtonWatcher()
+                        // we do NOT detach ScreenOffWatcher here, because ScreenOffWatcher callback comes in after onActivityStopped.
+                        // We'll detach it in ScreenOffWatcher's callback.
                     }
                 }
 
                 override fun onActivityDestroyed(activity: Activity?) {
                     if (currentActivity?.equals(activity) == true) {
                         currentActivity = null
-                        userDeniedPermission = false
+                        userDeniedDrawOverlaysPermission = false
 
                         // remove all listeners and detach all watchers
                         // When flutter app finishes, it doesn't invoke StreamHandler's onCancel() callback properly, so
@@ -92,8 +102,10 @@ class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
                         // related: https://github.com/flutter/plugins/pull/1992/files/04df85fef5a994d93d89b02b27bb7789ec452528#diff-efd825c710217272904545db4b2198e2
                         volumeButtonListeners.clear()
                         homeButtonListeners.clear()
+                        lockButtonListeners.clear()
                         detachKeyWatcher()
                         detachHomeButtonWatcher()
+                        detachScreenOffWatcher()
                     }
                 }
             }
@@ -115,6 +127,13 @@ class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
         attachHomeButtonWatcherIfNeeded()
     }
 
+    fun addLockButtonListener(listener: LockButtonListener) {
+        if (!lockButtonListeners.contains(listener)) {
+            lockButtonListeners.add(listener)
+        }
+        attachScreenOffWatcherIfNeeded()
+    }
+
     fun removeVolumeButtonListener(listener: VolumeButtonListener) {
         volumeButtonListeners.remove(listener)
         if (volumeButtonListeners.size == 0) {
@@ -129,10 +148,17 @@ class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
         }
     }
 
+    fun removeLockButtonListener(listener: LockButtonListener) {
+        lockButtonListeners.remove(listener)
+        if (lockButtonListeners.size == 0) {
+            detachScreenOffWatcher()
+        }
+    }
+
     private fun attachKeyWatcherIfNeeded() {
         val application = application ?: return
         val activity = currentActivity ?: return
-        if (volumeButtonListeners.size > 0 && keyWatcher == null && !userDeniedPermission) {
+        if (volumeButtonListeners.size > 0 && keyWatcher == null && !userDeniedDrawOverlaysPermission) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(application)) {
                 val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + application.packageName))
                 activity.startActivityForResult(intent, REQUEST_CODE_OVERLAY_PERMISSION)
@@ -157,6 +183,20 @@ class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
         }
     }
 
+    private fun attachScreenOffWatcherIfNeeded() {
+        val application = application ?: return
+        if (lockButtonListeners.size > 0 && screenOffWatcher == null) {
+            screenOffWatcher = ScreenOffWatcher {
+                if (it == ScreenOffWatcher.REASON_POWER_BUTTON) {
+                    dispatchLockButtonEvent()
+                }
+                detachScreenOffWatcher()
+            }
+            val intentFilter = IntentFilter(Intent.ACTION_SCREEN_OFF)
+            application.registerReceiver(screenOffWatcher, intentFilter)
+        }
+    }
+
     private fun detachKeyWatcher() {
         val application = application ?: return
         val keyWatcher = keyWatcher ?: return
@@ -169,6 +209,13 @@ class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
         val homeButtonWatcher = homeButtonWatcher ?: return
         application.unregisterReceiver(homeButtonWatcher)
         this.homeButtonWatcher = null
+    }
+
+    private fun detachScreenOffWatcher() {
+        val application = application ?: return
+        val screenOffWatcher = screenOffWatcher ?: return
+        application.unregisterReceiver(screenOffWatcher)
+        this.screenOffWatcher = null
     }
 
     private fun dispatchVolumeButtonEvent(keyEvent: KeyEvent) {
@@ -189,6 +236,12 @@ class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
     private fun dispatchHomeButtonEvent() {
         for (listener in homeButtonListeners) {
             listener.onHomeButtonEvent()
+        }
+    }
+
+    private fun dispatchLockButtonEvent() {
+        for (listener in lockButtonListeners) {
+            listener.onLockButtonEvent()
         }
     }
 
@@ -213,10 +266,10 @@ class HardwareButtonsWatcherManager: PluginRegistry.ActivityResultListener {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode == REQUEST_CODE_OVERLAY_PERMISSION) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(application)) {
-                userDeniedPermission = false
+                userDeniedDrawOverlaysPermission = false
                 attachKeyWatcherIfNeeded()
             } else {
-                userDeniedPermission = true
+                userDeniedDrawOverlaysPermission = true
             }
             return true
         }
@@ -246,8 +299,8 @@ private class KeyWatcher @JvmOverloads constructor(
 
 private class HomeButtonWatcher(private val callback: () -> Unit): BroadcastReceiver() {
     companion object {
-        const val KEY_REASON = "reason"
-        const val REASON_HOME_KEY = "homekey"
+        private const val KEY_REASON = "reason"
+        private const val REASON_HOME_KEY = "homekey"
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -256,6 +309,21 @@ private class HomeButtonWatcher(private val callback: () -> Unit): BroadcastRece
             if (intent.getStringExtra(KEY_REASON) == REASON_HOME_KEY) {
                 callback()
             }
+        }
+    }
+}
+
+private class ScreenOffWatcher(private val callback: (reason: Int) -> Unit): BroadcastReceiver() {
+    companion object {
+        private const val KEY_REASON = "reason"
+        // same value as PowerManager.GO_TO_SLEEP_REASON_POWER_BUTTON, but since it's @hide, we can't access it.
+        const val REASON_POWER_BUTTON = 4
+    }
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val intent = intent ?: return
+        if (intent.action == Intent.ACTION_SCREEN_OFF) {
+            callback(intent.getIntExtra(KEY_REASON, -1))
         }
     }
 }
