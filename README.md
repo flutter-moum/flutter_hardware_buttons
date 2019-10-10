@@ -14,11 +14,12 @@ Note: This plugin is still under development, and some APIs might not be availab
 
 - Detect volume buttons
 - Detect home button
+- Detect lock(power) button
 - To be added...
 
 ## Android specification
 
-- In order to listen to volume button events, this plugin inevitably requests for [ACTION_MANAGER_OVERLAY_PERMISSION](https://developer.android.com/reference/android/provider/Settings.html#ACTION_MANAGE_OVERLAY_PERMISSION). This may surprise users, so we recommend notifying users beforehand.
+- If you subscribe to volume button events, this plugin will inevitably request for [ACTION_MANAGER_OVERLAY_PERMISSION](https://developer.android.com/reference/android/provider/Settings.html#ACTION_MANAGE_OVERLAY_PERMISSION), since we found out this was the only way to do it well in Flutter Plugin environment. We do show permission request window for you, so there's nothing you should do other than subscribing to the event channel. However, since users may be surprised why your app needs this permission, we suggest notifying users beforehand why this permission will be requested.
 
 ## iOS specification
 
@@ -60,7 +61,9 @@ void dispose() {
 }
 ```
 
-Similarly, you can listen to home button events using `homeButtonEvents.listen`.
+Besides volume button events, there are also:
+1. Home button events, via `homeButtonEvents.listen`.
+2. Lock button events, via `lockButtonEvents.listen`.
 
 ## Example
 
