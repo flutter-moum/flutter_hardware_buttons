@@ -10,7 +10,6 @@ import Foundation
 public class LockButtonStreamHandler: NSObject, FlutterStreamHandler, LockListener {
     
     private var eventSink: FlutterEventSink?
-    private var homeTask: DispatchWorkItem?
     
     public func onListen(withArguments arguments: Any?,
                          eventSink events: @escaping FlutterEventSink) -> FlutterError? {

@@ -36,9 +36,7 @@ class SingleHomeAndLockObserver {
     // Remove Lock Listener
     public func removeLockListener(listener: LockListener) {
         lockListeners.removeAll()
-        if lockListeners.count == 0 && homeListeners.count == 0 {
-            unregisterObserver()
-        }
+        unregisterObserver()
     }
     
     // Add Home Listener
@@ -52,9 +50,7 @@ class SingleHomeAndLockObserver {
     // Remove Home Listener
     public func removeHomeListener(listener: HomeListener) {
         homeListeners.removeAll()
-        if homeListeners.count == 0 || lockListeners.count == 0 {
-            unregisterObserver()
-        }
+        unregisterObserver()
     }
     
     private func registerObserver() {
@@ -118,7 +114,7 @@ class SingleHomeAndLockObserver {
             }
             
             DispatchQueue.main.asyncAfter(
-                deadline: DispatchTime.now() + 0.2,
+                deadline: DispatchTime.now() + 0.5,
                 execute: homeTask ?? DispatchWorkItem(block: {
                     print("error")
                 }))
