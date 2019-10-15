@@ -17,17 +17,17 @@ public class SwiftHardwareButtonsPlugin: NSObject, FlutterPlugin {
                                                binaryMessenger: registrar.messenger())
         volumeStream.setStreamHandler(volumeInstance)
         
-        // HomeButton And LockButton
+        // HomeButton
         let homeInstance = HomeButtonStreamHandler()
         let homeStream = FlutterEventChannel(name: ChannelName.home,
                                              binaryMessenger: registrar.messenger())
         homeStream.setStreamHandler(homeInstance)
         
         // LockButton
-//        let lockInstance = LockButtonStreamHandler()
-//        let lockStream = FlutterEventChannel(name: ChannelName.lock,
-//                                             binaryMessenger: registrar.messenger())
-//        lockStream.setStreamHandler(lockInstance)
+        let lockInstance = LockButtonStreamHandler()
+        let lockStream = FlutterEventChannel(name: ChannelName.lock,
+                                             binaryMessenger: registrar.messenger())
+        lockStream.setStreamHandler(lockInstance)
         
     }
 

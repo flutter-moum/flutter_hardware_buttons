@@ -7,55 +7,25 @@
 
 import Foundation
 
-public class LockButtonStreamHandler: NSObject, FlutterStreamHandler {
-
+public class LockButtonStreamHandler: NSObject, FlutterStreamHandler, LockListener {
+    
     private var eventSink: FlutterEventSink?
-    private let notificationCenter = NotificationCenter.default
+    private var homeTask: DispatchWorkItem?
     
     public func onListen(withArguments arguments: Any?,
                          eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        singleHomeAndLockObserver.addLockListener(listener: self)
         self.eventSink = events
-//        registerLockObserver()
         return nil
     }
     
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
+        singleHomeAndLockObserver.removeLockListener(listener: self)
         eventSink = nil
-//        removeLockObserver()
         return nil
     }
     
-//    // Register Lock Notification
-//    private func registerLockObserver() {
-//        CFNotificationCenterAddObserver(
-//            CFNotificationCenterGetDarwinNotifyCenter(),
-//            Unmanaged.passUnretained(self).toOpaque(),
-//            displayStatusChangedCallback,
-//            "com.apple.springboard.lockstate" as CFString,
-//            nil,
-//            .deliverImmediately)
-//    }
-//    
-//    // Remove Lock Notification
-//    private func removeLockObserver() {
-//        CFNotificationCenterRemoveObserver(CFNotificationCenterGetLocalCenter(),
-//                                           Unmanaged.passUnretained(self).toOpaque(),
-//                                           nil,
-//                                           nil)
-//    }
-//    
-//    private func displayStatusChanged(_ lockState: String) {
-//        if lockState == "com.apple.springboard.lockstate" {
-//            eventSink?(0)
-//        }
-//    }
-//    
-//    private let displayStatusChangedCallback: CFNotificationCallback = { _, cfObserver, cfName, _, _ in
-//        guard let lockState = cfName?.rawValue as String? else {
-//            return
-//        }
-//        
-//        let catcher = Unmanaged<LockButtonStreamHandler>.fromOpaque(UnsafeRawPointer(OpaquePointer(cfObserver)!)).takeUnretainedValue()
-//        catcher.displayStatusChanged(lockState)
-//    }
+    func onEvent() {
+        self.eventSink?(0)
+    }
 }
