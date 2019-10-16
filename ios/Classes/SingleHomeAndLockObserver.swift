@@ -19,8 +19,8 @@ let singleHomeAndLockObserver = SingleHomeAndLockObserver()
 
 class SingleHomeAndLockObserver {
 
-    var lockListener: LockListener?
-    var homeListener: HomeListener?
+    private var lockListener: LockListener?
+    private var homeListener: HomeListener?
     
     private let notificationCenter = NotificationCenter.default
     private var homeTask: DispatchWorkItem?
@@ -38,7 +38,9 @@ class SingleHomeAndLockObserver {
     // Remove Lock Listener
     public func removeLockListener(listener: LockListener) {
         lockListener = nil
-        unregisterObserver()
+        if homeListener == nil {
+            unregisterObserver()
+        }
     }
     
     // Add Home Listener
@@ -54,7 +56,9 @@ class SingleHomeAndLockObserver {
     // Remove Home Listener
     public func removeHomeListener(listener: HomeListener) {
         homeListener = nil
-        unregisterObserver()
+        if lockListener == nil {
+            unregisterObserver()
+        }
     }
     
     private func registerObserver() {
