@@ -7,39 +7,24 @@
 
 import Foundation
 
-public class HomeButtonStreamHandler: NSObject, FlutterStreamHandler {
+public class HomeButtonStreamHandler: NSObject, FlutterStreamHandler, HomeListener {
     
     private var eventSink: FlutterEventSink?
-    private let notificationCenter = NotificationCenter.default
     
     public func onListen(withArguments arguments: Any?,
                          eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         self.eventSink = events
-        registerHomeObserver()
+        singleHomeAndLockObserver.addHomeListener(listener: self)
         return nil
     }
     
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
-        eventSink = nil
-        removeHomeObserver()
+        self.eventSink = nil
+        singleHomeAndLockObserver.removeHomeListener(listener: self)
         return nil
     }
     
-    // Register Home Notification
-    private func registerHomeObserver() {
-        notificationCenter.addObserver(
-            self,
-            selector: #selector(applicationWillResignActive),
-            name: Notification.Name.UIApplicationWillResignActive,
-            object: nil)
-    }
-    
-    // Remove Home Notification
-    private func removeHomeObserver() {
-        notificationCenter.removeObserver(Notification.Name.UIApplicationWillResignActive)
-    }
-    
-    @objc func applicationWillResignActive(){
-        eventSink?(0)
+    func onEvent() {
+        self.eventSink?(0)
     }
 }
