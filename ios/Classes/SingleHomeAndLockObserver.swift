@@ -18,38 +18,42 @@ protocol HomeListener {
 let singleHomeAndLockObserver = SingleHomeAndLockObserver()
 
 class SingleHomeAndLockObserver {
-    
-    var lockListeners = [LockListener]()
-    var homeListeners = [HomeListener]()
+
+    var lockListener: LockListener?
+    var homeListener: HomeListener?
     
     private let notificationCenter = NotificationCenter.default
     private var homeTask: DispatchWorkItem?
     
     // Add Lock Listener
     public func addLockListener(listener: LockListener) {
-        lockListeners.append(listener)
-        if lockListeners.count + homeListeners.count == 1 {
-            registerObserver()
+        if lockListener == nil {
+            lockListener = listener
+            if homeListener == nil {
+                registerObserver()
+            }
         }
     }
     
     // Remove Lock Listener
     public func removeLockListener(listener: LockListener) {
-        lockListeners.removeAll()
+        lockListener = nil
         unregisterObserver()
     }
     
     // Add Home Listener
     public func addHomeListener(listener: HomeListener) {
-        homeListeners.append(listener)
-        if lockListeners.count + homeListeners.count == 1 {
-            registerObserver()
+        if homeListener == nil {
+            homeListener = listener
+            if lockListener == nil {
+                registerObserver()
+            }
         }
     }
     
     // Remove Home Listener
     public func removeHomeListener(listener: HomeListener) {
-        homeListeners.removeAll()
+        homeListener = nil
         unregisterObserver()
     }
     
@@ -99,25 +103,21 @@ class SingleHomeAndLockObserver {
     func displayStatusChanged(_ lockState: String) {
         if lockState == "com.apple.springboard.lockcomplete" {
             homeTask?.cancel()
-            for listener in lockListeners {
-                listener.onEvent()
-            }
+            lockListener?.onEvent()
         }
     }
     
     // Home Button Detection
-    
     @objc func applicationWillResignActive(){
-        for homeListener in homeListeners {
-            homeTask = DispatchWorkItem {
-                homeListener.onEvent()
-            }
-            
-            DispatchQueue.main.asyncAfter(
-                deadline: DispatchTime.now() + 0.5,
-                execute: homeTask ?? DispatchWorkItem(block: {
-                    print("error")
-                }))
+        homeTask = DispatchWorkItem {
+            self.homeListener?.onEvent()
         }
+        
+        DispatchQueue.main.asyncAfter(
+            deadline: DispatchTime.now() + 0.5,
+            execute: homeTask ?? DispatchWorkItem(block: {
+                print("error")
+            }))
+        
     }
 }
