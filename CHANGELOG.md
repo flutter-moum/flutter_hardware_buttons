@@ -1,3 +1,8 @@
+## 0.2.0
+
+- Supports lock button events subscription.
+- iOS: Fix bug where home button event got called when lock button was pressed.
+
 ## 0.1.1
 
 - Update README.md
