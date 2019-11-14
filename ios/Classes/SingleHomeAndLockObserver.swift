@@ -75,7 +75,7 @@ class SingleHomeAndLockObserver {
         notificationCenter.addObserver(
             self,
             selector: #selector(applicationWillResignActive),
-            name: Notification.Name.UIApplicationWillResignActive,
+            name: UIApplication.willResignActiveNotification,
             object: nil)
     }
     
@@ -89,7 +89,7 @@ class SingleHomeAndLockObserver {
         
         // Home Button
         notificationCenter.removeObserver(
-            Notification.Name.UIApplicationWillResignActive)
+            UIApplication.willResignActiveNotification)
     }
     
     // Lock Button Detection
