@@ -12,7 +12,9 @@ public class VolumeButtenStreamHandler: NSObject, FlutterStreamHandler {
     
     private var eventSink: FlutterEventSink?
     private var volumeLevel: Float = 0.0
+    private var isObserving: Bool = false
     private let notificationCenter = NotificationCenter.default
+    private let audioSession = AVAudioSession.sharedInstance()
     
     public func onListen(withArguments arguments: Any?,
                          eventSink events: @escaping FlutterEventSink) -> FlutterError? {
@@ -29,6 +31,7 @@ public class VolumeButtenStreamHandler: NSObject, FlutterStreamHandler {
     
     // Register Volume Notification
     private func registerVolumeObserver() {
+        activateAudioSession()
         notificationCenter.addObserver(
             self,
             selector: #selector(activateAudioSession),
@@ -38,20 +41,22 @@ public class VolumeButtenStreamHandler: NSObject, FlutterStreamHandler {
     
     // Remove Volume Notification
     private func removeVolumeObserver() {
-        notificationCenter.removeObserver(self,
-                                          forKeyPath: "outputVolume")
+        audioSession.removeObserver(self,
+                                    forKeyPath: "outputVolume")
         notificationCenter.removeObserver(UIApplication.didBecomeActiveNotification)
     }
     
     @objc func activateAudioSession(){
-        let audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession.setCategory(AVAudioSession.Category.ambient)
             try audioSession.setActive(true)
-            audioSession.addObserver(self,
-                                     forKeyPath: "outputVolume",
-                                     options: .new,
-                                     context: nil)
+            if !isObserving {
+                audioSession.addObserver(self,
+                                         forKeyPath: "outputVolume",
+                                         options: .new,
+                                         context: nil)
+                isObserving = true
+            }
             volumeLevel = audioSession.outputVolume
         } catch {
             print("error")
@@ -63,7 +68,6 @@ public class VolumeButtenStreamHandler: NSObject, FlutterStreamHandler {
                                       change: [NSKeyValueChangeKey: Any]?,
                                       context: UnsafeMutableRawPointer?) {
         if keyPath == "outputVolume" {
-            let audioSession = AVAudioSession.sharedInstance()
             if audioSession.outputVolume > volumeLevel {
                 eventSink?(24)
             }
