@@ -12,6 +12,7 @@ public class VolumeButtenStreamHandler: NSObject, FlutterStreamHandler {
     
     private var eventSink: FlutterEventSink?
     private var volumeLevel: Float = 0.0
+    private var isObserving: Bool = false
     private let notificationCenter = NotificationCenter.default
     private let audioSession = AVAudioSession.sharedInstance()
     
@@ -30,6 +31,7 @@ public class VolumeButtenStreamHandler: NSObject, FlutterStreamHandler {
     
     // Register Volume Notification
     private func registerVolumeObserver() {
+        activateAudioSession()
         notificationCenter.addObserver(
             self,
             selector: #selector(activateAudioSession),
@@ -48,10 +50,13 @@ public class VolumeButtenStreamHandler: NSObject, FlutterStreamHandler {
         do {
             try audioSession.setCategory(AVAudioSession.Category.ambient)
             try audioSession.setActive(true)
-            audioSession.addObserver(self,
-                                     forKeyPath: "outputVolume",
-                                     options: .new,
-                                     context: nil)
+            if !isObserving {
+                audioSession.addObserver(self,
+                                         forKeyPath: "outputVolume",
+                                         options: .new,
+                                         context: nil)
+                isObserving = true
+            }
             volumeLevel = audioSession.outputVolume
         } catch {
             print("error")
