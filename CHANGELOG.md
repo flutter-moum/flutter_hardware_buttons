@@ -1,3 +1,6 @@
+## 0.2.3
+- iOS: Fix Volume detection bug on iPhone 10.3.3.
+
 ## 0.2.2
 - iOS: Migrating to Swift 5
 
