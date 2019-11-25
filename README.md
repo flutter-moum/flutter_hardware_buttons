@@ -20,6 +20,7 @@ Note: This plugin is still under development, and some APIs might not be availab
 ## Android specification
 
 - If you subscribe to volume button events, this plugin will inevitably request for [ACTION_MANAGER_OVERLAY_PERMISSION](https://developer.android.com/reference/android/provider/Settings.html#ACTION_MANAGE_OVERLAY_PERMISSION), since we found out this was the only way to do it well in Flutter Plugin environment. We do show permission request window for you, so there's nothing you should do other than subscribing to the event channel. However, since users may be surprised why your app needs this permission, we suggest notifying users beforehand why this permission will be requested.
+- **Migrated to AndroidX as of version ```1.0.0```**. To use with original support libraries, use version ```0.2.4```. Note, however, pre-AndroidX will no longer be supported.
 
 ## iOS specification
 
@@ -30,6 +31,8 @@ Note: This plugin is still under development, and some APIs might not be availab
 ### Import the package
 
 To use this plugin, follow the [plugin installation instructions](https://pub.dev/packages/hardware_buttons#-installing-tab-).
+
+To use with AndroidX, install the latest version as above instructions. To use with original support libraries, install version ```0.2.4``` instead.
 
 ## Use the plugin
 

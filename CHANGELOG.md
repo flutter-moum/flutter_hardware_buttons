@@ -1,3 +1,6 @@
+## 1.0.0
+- Android: Migrate to AndroidX (#33)
+
 ## 0.2.4
 - Android: Fix issue #39
 
