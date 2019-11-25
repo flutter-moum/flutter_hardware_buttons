@@ -1,3 +1,6 @@
+## 0.2.4
+- Android: Fix issue #39
+
 ## 0.2.3
 - iOS: Fix Volume detection bug on iPhone 10.3.3.
 
