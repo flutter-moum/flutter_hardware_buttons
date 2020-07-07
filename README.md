@@ -1,3 +1,7 @@
+# DEPRECATED
+
+This plugin is deprecated :( We're no longer able to maintain it. 
+
 # hardware_buttons
 
 [![Version](https://img.shields.io/pub/v/hardware_buttons.svg)](https://pub.dev/packages/hardware_buttons) ![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)
