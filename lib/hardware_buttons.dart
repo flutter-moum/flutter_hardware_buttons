@@ -6,22 +6,15 @@ const _VOLUME_BUTTON_CHANNEL_NAME = 'flutter.moum.hardware_buttons.volume';
 const _HOME_BUTTON_CHANNEL_NAME = 'flutter.moum.hardware_buttons.home';
 const _LOCK_BUTTON_CHANNEL_NAME = 'flutter.moum.hardware_buttons.lock';
 
-const EventChannel _volumeButtonEventChannel =
-    EventChannel(_VOLUME_BUTTON_CHANNEL_NAME);
-const EventChannel _homeButtonEventChannel =
-    EventChannel(_HOME_BUTTON_CHANNEL_NAME);
-const EventChannel _lockButtonEventChannel =
-    EventChannel(_LOCK_BUTTON_CHANNEL_NAME);
+const EventChannel _volumeButtonEventChannel = EventChannel(_VOLUME_BUTTON_CHANNEL_NAME);
+const EventChannel _homeButtonEventChannel = EventChannel(_HOME_BUTTON_CHANNEL_NAME);
+const EventChannel _lockButtonEventChannel = EventChannel(_LOCK_BUTTON_CHANNEL_NAME);
 
 Stream<VolumeButtonEvent>? _volumeButtonEvents;
 
 /// A broadcast stream of volume button events
 Stream<VolumeButtonEvent> get volumeButtonEvents {
-  if (_volumeButtonEvents == null) {
-    _volumeButtonEvents = _volumeButtonEventChannel
-        .receiveBroadcastStream()
-        .map((dynamic event) => _eventToVolumeButtonEvent(event));
-  }
+  _volumeButtonEvents ??= _volumeButtonEventChannel.receiveBroadcastStream().map((dynamic event) => _eventToVolumeButtonEvent(event));
   return _volumeButtonEvents!;
 }
 
@@ -29,11 +22,7 @@ Stream<HomeButtonEvent>? _homeButtonEvents;
 
 /// A broadcast stream of home button events
 Stream<HomeButtonEvent> get homeButtonEvents {
-  if (_homeButtonEvents == null) {
-    _homeButtonEvents = _homeButtonEventChannel
-        .receiveBroadcastStream()
-        .map((dynamic event) => HomeButtonEvent.INSTANCE);
-  }
+  _homeButtonEvents ??= _homeButtonEventChannel.receiveBroadcastStream().map((dynamic event) => HomeButtonEvent.INSTANCE);
   return _homeButtonEvents!;
 }
 
@@ -41,11 +30,7 @@ Stream<LockButtonEvent>? _lockButtonEvents;
 
 /// A broadcast stream of lock button events
 Stream<LockButtonEvent> get lockButtonEvents {
-  if (_lockButtonEvents == null) {
-    _lockButtonEvents = _lockButtonEventChannel
-        .receiveBroadcastStream()
-        .map((dynamic event) => LockButtonEvent.INSTANCE);
-  }
+  _lockButtonEvents ??= _lockButtonEventChannel.receiveBroadcastStream().map((dynamic event) => LockButtonEvent.INSTANCE);
   return _lockButtonEvents!;
 }
 
